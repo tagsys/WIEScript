@@ -1,0 +1,67 @@
+// ==UserScript==
+// @name         FindingAllPendingRequests
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       You
+// @match        https://wie.comp.polyu.edu.hk/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=juejin.cn
+// @require https://code.jquery.com/jquery-3.6.0.min.js
+// @grant        none
+// ==/UserScript==
+
+(function() {
+
+    var requests = [];
+
+    $(".requestReportTable").find('tr').filter(function() {
+        // Get the Request Status column's text (index is zero-based)
+        var columnText = $(this).find('td:eq(8)').text().trim(); // We have changed the index to 8 here
+
+        // Check if it equals "Officer pending"
+        if (columnText == "Officer pending") {
+            var str = $(this).find("td:eq(11)").children().attr("onclick");
+            //             console.log(str);
+            //             var regex = /window\.open\('([^']*)'/;
+            //             var match = str.match(regex);
+            str = str.replace("'myForm'", "'_blank'");
+            requests.push(str);
+        }
+    });
+
+    var approveButton = $('<button>', {
+        text: 'Approve Request(' + requests.length + ')',
+        id: 'approveButton'
+    });
+
+    // Append the new button beside the existing button
+    $('button:contains("Cancel all filters")').after(approveButton);
+
+    // Add click event listener to the new button
+    approveButton.on('click', approve);
+
+    // Function to be called when the new button is clicked
+    function approve() {
+        // Your code logic for approving the request goes here
+        var code = requests.pop();
+        console.log(code);
+
+        // Extract the parameters using regular expressions
+        var match = code.match(/window.open\('([^']*)','([^']*)','([^']*)'\)/);
+        if (match) {
+            var URL = match[1];
+            var windowName = match[2];
+            var windowFeatures = match[3];
+
+            console.log("URL:", URL);
+            console.log("windowName:", windowName);
+            console.log("windowFeatures:", windowFeatures);
+        }
+
+        var child = window.open(URL, windowName, windowFeatures);
+        child.opener = null;
+
+        $("#approveButton").text('Approve Request(' + requests.length + ')');
+    }
+
+})();
