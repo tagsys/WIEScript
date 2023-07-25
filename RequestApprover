@@ -29,19 +29,19 @@
         }
     });
 
-    var approveButton = $('<button>', {
+    var approveRequestButton = $('<button>', {
         text: 'Approve Request(' + requests.length + ')',
-        id: 'approveButton'
+        id: 'approveRequestButton'
     });
 
     // Append the new button beside the existing button
-    $('button:contains("Cancel all filters")').after(approveButton);
+    $('button:contains("Cancel all filters")').after(approveRequestButton);
 
     // Add click event listener to the new button
-    approveButton.on('click', approve);
+    approveRequestButton.on('click', approveRequest);
 
     // Function to be called when the new button is clicked
-    function approve() {
+    function approveRequest() {
         // Your code logic for approving the request goes here
         var code = requests.pop();
         console.log(code);
@@ -61,7 +61,59 @@
         var child = window.open(URL, windowName, windowFeatures);
         child.opener = null;
 
-        $("#approveButton").text('Approve Request(' + requests.length + ')');
+        $("#approveRequestButton").text('Approve Request(' + requests.length + ')');
+    }
+
+    var reports = [];
+
+    $(".requestReportTable").find('tr').filter(function() {
+        // Get the Request Status column's text (index is zero-based)
+        var columnText = $(this).find('td:eq(12)').text().trim(); // We have changed the index to 8 here
+
+        // Check if it equals "Officer pending"
+        if (columnText == "Officer pending") {
+            var str = $(this).find("td:eq(15)").children().attr("onclick");
+            //             console.log(str);
+            //             var regex = /window\.open\('([^']*)'/;
+            //             var match = str.match(regex);
+            str = str.replace("'myForm'", "'_blank'");
+            reports.push(str);
+        }
+    });
+
+   var approveReportButton = $('<button>', {
+        text: 'Approve Reports(' + reports.length + ')',
+        id: 'approveReportsButton'
+    });
+
+    approveRequestButton.after(approveReportButton);
+
+
+    // Add click event listener to the new button
+    $("#approveReportsButton").on('click', approveReport);
+
+        // Function to be called when the new button is clicked
+    function approveReport() {
+        // Your code logic for approving the request goes here
+        var code = reports.pop();
+        console.log(code);
+
+        // Extract the parameters using regular expressions
+        var match = code.match(/window.open\('([^']*)','([^']*)','([^']*)'\)/);
+        if (match) {
+            var URL = match[1];
+            var windowName = match[2];
+            var windowFeatures = match[3];
+
+            console.log("URL:", URL);
+            console.log("windowName:", windowName);
+            console.log("windowFeatures:", windowFeatures);
+        }
+
+        var child = window.open(URL, windowName, windowFeatures);
+        child.opener = null;
+
+        $("#approveReportsButton").text('Approve Reports(' + reports.length + ')');
     }
 
 })();
